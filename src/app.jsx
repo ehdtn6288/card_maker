@@ -1,15 +1,10 @@
 import { useEffect, useState } from "react";
-import {
-  BrowserRouter,
-  Redirect,
-  Route,
-  Switch,
-  useHistory,
-} from "react-router-dom";
+import { BrowserRouter, Redirect, Route, Switch } from "react-router-dom";
 import "./app.css";
-import signGoogle from "./auth_google";
-import CardEdit from "./components/card_edit";
-import CardPreview from "./components/card_preview";
+import CardAdd from "./components/card_add/card_add";
+
+import CardEdit from "./components/card_edit/card_edit";
+import CardPreview from "./components/card_preview/card_preview";
 import Login from "./components/login";
 import Prac from "./components/prac";
 
@@ -17,26 +12,20 @@ import firebase from "./firebase";
 
 function App() {
   const [user, setUser] = useState({});
-  const [text, setText] = useState({ text: "", age: "" });
-  const [login, setLogin] = useState(true);
-  const history = useHistory();
+  const [text, setText] = useState([]);
 
-  const onChange = (e) => {
-    const inputName = e.target.name;
-    const newText = e.target.value;
-    updateText(inputName, newText);
-  };
+  const [login, setLogin] = useState();
 
   const updateText = (newData, cardId) => {
     firebase.database().ref(`cards/${user.name}/${cardId}`).set(newData);
   };
 
-  const addCard = (e) => {
-    e.preventDefault();
-    console.log(e.target[0].value, "1111");
-    const text = e.target[0].value;
-    const age = e.target[1].value;
-    firebase.database().ref(`cards/${user.name}`).push().set({ text, age });
+  const addCard = (text, age, imgUrl) => {
+    firebase
+      .database()
+      .ref(`cards/${user.name}`)
+      .push()
+      .set({ text, age, imgUrl });
   };
 
   const logout = () => {
@@ -59,10 +48,11 @@ function App() {
       if (user) {
         const uid = user.uid;
         const email = user.email;
+
         setUser({ name: user.displayName });
         setLogin(true);
         console.log(user.displayName, "----------uid");
-        email &&
+        user &&
           firebase
             .database()
             .ref(`cards/${user.displayName}`)
@@ -76,7 +66,10 @@ function App() {
                   return datas[key];
                 });
                 setText(texts);
+                console.log("SETTTT!!!!!!");
                 console.log(texts);
+              } else {
+                setText([]);
               }
             });
       } else {
@@ -87,18 +80,17 @@ function App() {
       }
     });
   }, []);
-
+  const onDelete = (key) => {
+    firebase.database().ref(`cards/${user.name}/${key}`).remove();
+  };
   return (
     <BrowserRouter>
       <div>USER : {user.name}</div>
       <Switch>
         <Route exact path="/login">
-          {login ? (
-            <Redirect to="/" />
-          ) : (
-            <Login firebase={firebase} signGoogle={signGoogle} />
-          )}
+          {login ? <Redirect to="/" /> : <Login firebase={firebase} />}
         </Route>
+
         <Route exact path="/">
           {login ? (
             <>
@@ -106,26 +98,23 @@ function App() {
               <div>
                 {firebase.auth().currentUser && firebase.auth().currentUser.uid}
               </div>
-              <form
-                onSubmit={addCard}
-                onChange={(e) => console.log(e.target.key)}
-              >
-                <input type="text" name="text" />
-                <input type="text" name="age" />
-                <button type="submit">추가</button>
-              </form>
+              <div>
+                <CardAdd addCard={addCard} />
+              </div>
+
               <div className="main">
-                {text.length > 1 &&
+                {text &&
                   text.map((item) => (
                     <CardEdit
                       key={item.cardId}
                       card={item}
                       update={updateText}
+                      onDelete={onDelete}
                     />
                   ))}
               </div>
               <div>
-                {text.length > 1 &&
+                {text &&
                   text.map((item) => (
                     <CardPreview key={item.cardId} card={item} />
                   ))}

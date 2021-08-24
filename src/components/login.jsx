@@ -1,19 +1,26 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useHistory } from "react-router-dom";
+import { signGithub, signGoogle } from "../auth_google";
 
-const Login = ({ firebase, signGoogle }) => {
+const Login = ({ firebase, login }) => {
   const logout = () => {
     firebase
       .auth()
       .signOut()
       .then(() => {});
   };
+  const history = useHistory();
 
-  const onLogin = () => {
+  const onGoogle = () => {
     signGoogle();
+  };
+  const onGithub = () => {
+    signGithub();
   };
   return (
     <div>
-      <button onClick={onLogin}>Login</button>
+      <button onClick={onGoogle}>Google Login</button>
+      <button onClick={onGithub}>Github Login</button>
     </div>
   );
 };

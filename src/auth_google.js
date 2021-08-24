@@ -1,11 +1,12 @@
 import "firebase/auth";
 import firebase from "firebase/app";
 
-const provider = new firebase.auth.GoogleAuthProvider();
-const signGoogle = () => {
+const goobleProvider = new firebase.auth.GoogleAuthProvider();
+const githubProvider = new firebase.auth.GithubAuthProvider();
+export const signGoogle = () => {
   firebase
     .auth()
-    .signInWithPopup(provider)
+    .signInWithPopup(goobleProvider)
     .then((result) => {
       /** @type {firebase.auth.OAuthCredential} */
       var credential = result.credential;
@@ -31,4 +32,17 @@ const signGoogle = () => {
     });
 };
 
-export default signGoogle;
+export const signGithub = () => {
+  firebase
+    .auth()
+    .signInWithPopup(githubProvider)
+    .then((result) => {
+      /** @type {firebase.auth.OAuthCredential} */
+      const credential = result.credential;
+      const user = result.user;
+      console.log(user);
+    })
+    .catch((error) => {
+      console.log(error.code, error.credential);
+    });
+};
